@@ -26,6 +26,8 @@ namespace FluentAssertions.Execution
 
         private AssertionScope parent;
         private Func<string> expectation = null;
+        [ThreadStatic]
+        private static Func<AssertionScope, string> globalContext = null;
         private readonly bool evaluateCondition = true;
         private string fallbackIdentifier = "object";
 
@@ -222,6 +224,11 @@ namespace FluentAssertions.Execution
                         result = expectation() + result;
                     }
 
+                    if (globalContext != null)
+                    {
+                        result = result + globalContext(this);
+                    }
+
                     assertionStrategy.HandleFailure(result.Capitalize());
                 }
 
@@ -307,6 +314,18 @@ namespace FluentAssertions.Execution
         {
             this.fallbackIdentifier = identifier;
             return this;
+        }
+
+        public static IDisposable WithGlobalContext(string message, params object[] args)
+        {
+            var oldGlobalContext = globalContext;
+            globalContext = (assertionScope) =>
+            {
+                var localReason = assertionScope.reason;
+                var oldGlobalContextText = oldGlobalContext != null ? oldGlobalContext(assertionScope) : "";
+                return " " + new MessageBuilder(assertionScope.useLineBreaks).Build(message, args, localReason != null ? localReason() : "", assertionScope.contextData, assertionScope.GetIdentifier(), assertionScope.fallbackIdentifier) + oldGlobalContextText;
+            };
+            return new Disposable(() => { globalContext = oldGlobalContext; });
         }
     }
 }
