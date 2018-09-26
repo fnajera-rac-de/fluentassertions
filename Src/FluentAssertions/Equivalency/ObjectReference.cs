@@ -16,7 +16,12 @@ namespace FluentAssertions.Equivalency
         public ObjectReference(object @object, string path, bool? isComplexType = null)
         {
             this.@object = @object;
-            this.path = path.ToLower().Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+
+            this.path = path
+                .ToLower()
+                .Replace("][", "].[")
+                .Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+
             this.isComplexType = isComplexType;
         }
 
@@ -29,9 +34,7 @@ namespace FluentAssertions.Equivalency
         /// <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:System.Object"/>. </param><filterpriority>2</filterpriority>
         public override bool Equals(object obj)
         {
-            var other = obj as ObjectReference;
-
-            if (ReferenceEquals(other, null))
+            if (!(obj is ObjectReference other))
             {
                 return false;
             }
@@ -61,9 +64,9 @@ namespace FluentAssertions.Equivalency
 
         public override string ToString()
         {
-            return $"{{\"{path}\", {@object}}}";
+            return $"{{\"{string.Join(".", path)}\", {@object}}}";
         }
 
-        public bool IsComplexType => isComplexType ?? (!ReferenceEquals(@object, null) && !@object.GetType().OverridesEquals());
+        public bool IsComplexType => isComplexType ?? (!(@object is null) && !@object.GetType().OverridesEquals());
     }
 }

@@ -124,7 +124,8 @@ namespace FluentAssertions.Primitives
                 Tracer = options.TraceWriter
             };
 
-            new EquivalencyValidator(options).AssertEquality(context);
+            var equivalencyValidator = new EquivalencyValidator(options);
+            equivalencyValidator.AssertEquality(context);
         }
 
         /// <summary>
@@ -143,7 +144,7 @@ namespace FluentAssertions.Primitives
         {
             Execute.Assertion
                 .BecauseOf(because, becauseArgs)
-                .ForCondition(!ReferenceEquals(Subject, null))
+                .ForCondition(!(Subject is null))
                 .FailWith("Expected type to be {0}{reason}, but found <null>.", expectedFlag.GetType())
                 .Then
                 .ForCondition(Subject.GetType() == expectedFlag.GetType())
@@ -172,7 +173,7 @@ namespace FluentAssertions.Primitives
         {
             Execute.Assertion
                 .BecauseOf(because, becauseArgs)
-                .ForCondition(!ReferenceEquals(Subject, null))
+                .ForCondition(!(Subject is null))
                 .FailWith("Expected type to be {0}{reason}, but found <null>.", unexpectedFlag.GetType())
                 .Then
                 .ForCondition(Subject.GetType() == unexpectedFlag.GetType())

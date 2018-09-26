@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Collections;
 using System.Net;
 using FluentAssertions.Common;
 using FluentAssertions.Equivalency;
@@ -11,8 +12,6 @@ using Xunit.Sdk;
 
 namespace FluentAssertions.Specs
 {
-    [Collection("Equivalency")]
-
     public class BasicEquivalencySpecs
     {
         public enum LocalOtherType : byte
@@ -3334,6 +3333,40 @@ namespace FluentAssertions.Specs
             act.Should().NotThrow();
         }
 
+        [Fact]
+        public void When_an_enumerable_collection_returns_itself_it_should_detect_the_cyclic_reference()
+        {
+            //-----------------------------------------------------------------------------------------------------------
+            // Act
+            //-----------------------------------------------------------------------------------------------------------
+            var instance1 = new SelfReturningEnumerable();
+            var instance2 = new SelfReturningEnumerable();
+            var actual = new List<SelfReturningEnumerable> {instance1, instance2};
+
+            //-----------------------------------------------------------------------------------------------------------
+            // Assert
+            //-----------------------------------------------------------------------------------------------------------
+            Action act = () => actual.Should().BeEquivalentTo(new SelfReturningEnumerable(), new SelfReturningEnumerable());
+
+            //-----------------------------------------------------------------------------------------------------------
+            // Assert
+            //-----------------------------------------------------------------------------------------------------------
+            act.Should().Throw<XunitException>().WithMessage("*cyclic*");
+        }
+
+        public class SelfReturningEnumerable : IEnumerable<SelfReturningEnumerable>
+        {
+            public IEnumerator<SelfReturningEnumerable> GetEnumerator()
+            {
+                yield return this;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
         internal class LogbookEntryProjection
         {
             public virtual LogbookCode Logbook { get; set; }
@@ -3980,13 +4013,12 @@ namespace FluentAssertions.Specs
 
         public override bool Equals(object obj)
         {
-            var other = obj as CustomerType;
-            return (other != null) && (Code.Equals(other.Code));
+            return (obj is CustomerType other) && Code.Equals(other.Code);
         }
 
         public override int GetHashCode()
         {
-            return (Code?.GetHashCode() ?? 0);
+            return Code?.GetHashCode() ?? 0;
         }
 
         public static bool operator ==(CustomerType a, CustomerType b)
@@ -3996,7 +4028,7 @@ namespace FluentAssertions.Specs
                 return true;
             }
 
-            if (((object)a == null) || ((object)b == null))
+            if ((a is null) || (b is null))
             {
                 return false;
             }
@@ -4166,7 +4198,7 @@ namespace FluentAssertions.Specs
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }

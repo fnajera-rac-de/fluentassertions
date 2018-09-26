@@ -1,3 +1,5 @@
+#if NET45 || NET47 || NETCOREAPP2_0
+
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -55,7 +57,7 @@ namespace FluentAssertions.Events
 
             cleanup = () =>
             {
-                if (!ReferenceEquals(subject.Target, null))
+                if (!(subject.Target is null))
                 {
                     eventInfo.RemoveEventHandler(subject.Target, handler);
                 }
@@ -121,3 +123,5 @@ namespace FluentAssertions.Events
         }
     }
 }
+
+#endif

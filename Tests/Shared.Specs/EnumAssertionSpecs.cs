@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Text;
 using Xunit;
 using Xunit.Sdk;
 
@@ -10,9 +6,9 @@ namespace FluentAssertions.Specs
 {
     public enum EnumULong : ulong
     {
-        UInt64Max = UInt64.MaxValue,
+        Int64Max = Int64.MaxValue,
         UInt64LessOne = UInt64.MaxValue - 1,
-        Int64Max = Int64.MaxValue
+        UInt64Max = UInt64.MaxValue
     }
 
     public enum EnumLong : long

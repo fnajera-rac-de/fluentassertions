@@ -15,7 +15,7 @@ namespace FluentAssertions
     {
         public static Action<string> logger = str => { };
 
-#if NET45 || NET47 || NETSTANDARD2_0
+#if NET45 || NET47 || NETSTANDARD2_0 || NETCOREAPP2_0
         public static string DetermineCallerIdentity()
         {
             string caller = null;
@@ -102,7 +102,7 @@ namespace FluentAssertions
             {
                 using (StreamReader reader = new StreamReader(File.OpenRead(fileName)))
                 {
-                    string line = null;
+                    string line;
                     int currentLine = 1;
 
                     while ((line = reader.ReadLine()) != null && currentLine < expectedLineNumber)

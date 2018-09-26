@@ -13,13 +13,11 @@ namespace FluentAssertions.Formatting
     {
         #region Private Definitions
 
-        private const int MaxDepth = 15;
-
         private static readonly List<IValueFormatter> customFormatters = new List<IValueFormatter>();
 
         private static readonly List<IValueFormatter> defaultFormatters = new List<IValueFormatter>
         {
-#if NET45 || NET47 || NETSTANDARD2_0
+#if NET45 || NET47 || NETSTANDARD2_0 || NETCOREAPP2_0
             new XmlNodeFormatter(),
 #endif
             new AttributeBasedFormatter(),
@@ -115,7 +113,7 @@ namespace FluentAssertions.Formatting
                 {
                     return $"{{Cyclic reference to type {childValue.GetType()} detected}}";
                 }
-                else if (graph.Depth > MaxDepth)
+                else if (graph.Depth > 5)
                 {
                     return "{Maximum recursion depth was reached…}";
                 }
@@ -187,7 +185,9 @@ namespace FluentAssertions.Formatting
             {
                 pathStack.Push(path);
 
-                return !tracker.IsCyclicReference(new ObjectReference(value, GetFullPath()));
+                string fullPath = GetFullPath();
+                var reference = new ObjectReference(value, fullPath);
+                return !tracker.IsCyclicReference(reference);
             }
 
             private string GetFullPath() => string.Join(".", pathStack.Reverse());
@@ -198,6 +198,11 @@ namespace FluentAssertions.Formatting
             }
 
             public int Depth => (pathStack.Count - 1);
+
+            public override string ToString()
+            {
+                return String.Join(".", pathStack.Reverse().ToArray());
+            }
         }
     }
 }

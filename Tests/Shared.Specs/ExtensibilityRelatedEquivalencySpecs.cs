@@ -12,8 +12,6 @@ namespace FluentAssertions.Specs
     /// <summary>
     /// Test Class containing specs over the extensibility points of Should().BeEquivalentTo
     /// </summary>
-    [Collection("Equivalency")]
-
     public class ExtensibilityRelatedEquivalencySpecs
     {
         #region Selection Rules
@@ -165,15 +163,15 @@ namespace FluentAssertions.Specs
 
         internal class ForeignKeyMatchingRule : IMemberMatchingRule
         {
-            public SelectedMemberInfo Match(SelectedMemberInfo subjectMember, object expectation, string memberPath, IEquivalencyAssertionOptions config)
+            public SelectedMemberInfo Match(SelectedMemberInfo expectedMember, object subject, string memberPath, IEquivalencyAssertionOptions config)
             {
-                string name = subjectMember.Name;
+                string name = expectedMember.Name;
                 if (name.EndsWith("Id"))
                 {
                     name = name.Replace("Id", "");
                 }
 
-                return SelectedMemberInfo.Create(expectation.GetType().GetRuntimeProperty(name));
+                return SelectedMemberInfo.Create(subject.GetType().GetRuntimeProperty(name));
             }
         }
 
@@ -470,13 +468,13 @@ namespace FluentAssertions.Specs
             //-----------------------------------------------------------------------------------------------------------
             var actual = new SimpleWithNullable
             {
-                nullableIntegerProperty = 1,
-                strProperty = "I haz a string!"
+                NullableIntegerProperty = 1,
+                StringProperty = "I haz a string!"
             };
 
             var expected = new SimpleWithNullable
             {
-                strProperty = "I haz a string!"
+                StringProperty = "I haz a string!"
             };
 
             //-----------------------------------------------------------------------------------------------------------
@@ -488,9 +486,9 @@ namespace FluentAssertions.Specs
 
         internal class SimpleWithNullable
         {
-            public long? nullableIntegerProperty { get; set; }
+            public long? NullableIntegerProperty { get; set; }
 
-            public string strProperty { get; set; }
+            public string StringProperty { get; set; }
         }
 
         [Fact]
@@ -553,7 +551,7 @@ namespace FluentAssertions.Specs
         }
 
         [Fact]
-        public void When_multiple_asertion_rules_are_added_they_should_be_evaluated_last_to_first()
+        public void When_multiple_assertion_rules_are_added_they_should_be_evaluated_last_to_first()
         {
             //-----------------------------------------------------------------------------------------------------------
             // Arrange

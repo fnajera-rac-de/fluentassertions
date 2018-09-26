@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if NET45 || NET47 || NETCOREAPP2_0
+
+using System;
 using System.ComponentModel;
 using System.Linq;
 
@@ -8,12 +10,8 @@ using FluentAssertions.Formatting;
 using Xunit;
 using Xunit.Sdk;
 
-// ReSharper disable AccessToDisposedClosure
-#if NET45 || NET47 || NETSTANDARD2_0
 using System.Reflection;
 using System.Reflection.Emit;
-
-#endif
 
 namespace FluentAssertions.Specs
 {
@@ -680,64 +678,6 @@ namespace FluentAssertions.Specs
             }
         }
 
-#if NETCOREAPP2_0 && DEBUG
-#warning Skipping two GC tests for .NET Core 2.0 TFM in debug build. See https://github.com/dotnet/coreclr/issues/12847 for details.
-#else
-        [Fact]
-        public void When_a_monitored_class_is_not_referenced_anymore_it_should_be_garbage_collected()
-        {
-            //-----------------------------------------------------------------------------------------------------------
-            // Arrange
-            //----------------------------------------------------------------------------------------------------------
-            var subject = new EventRaisingClass();
-            var referenceToSubject = new WeakReference(subject);
-            using (subject.Monitor())
-            {
-                //-----------------------------------------------------------------------------------------------------------
-                // Act
-                //-----------------------------------------------------------------------------------------------------------
-                subject = null;
-            }
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-
-            //-----------------------------------------------------------------------------------------------------------
-            // Assert
-            //-----------------------------------------------------------------------------------------------------------
-            referenceToSubject.IsAlive.Should().BeFalse();
-        }
-
-        [Fact]
-        public void
-            When_a_monitored_class_is_not_referenced_anymore_it_should_be_garbage_collected_also_if_an_Event_passing_Sender_was_raised()
-        {
-            //-----------------------------------------------------------------------------------------------------------
-            // Arrange
-            //----------------------------------------------------------------------------------------------------------
-            var subject = new EventRaisingClass();
-            var referenceToSubject = new WeakReference(subject);
-
-            using (subject.Monitor())
-            {
-                subject.RaiseEventWithSender();
-
-                //-----------------------------------------------------------------------------------------------------------
-                // Act
-                //-----------------------------------------------------------------------------------------------------------
-                subject = null;
-            }
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-
-            //-----------------------------------------------------------------------------------------------------------
-            // Assert
-            //-----------------------------------------------------------------------------------------------------------
-            referenceToSubject.IsAlive.Should().BeFalse();
-        }
-#endif
-
         #endregion
 
         #region Metadata
@@ -803,7 +743,7 @@ namespace FluentAssertions.Specs
             }
         }
 
-#if NET45 || NET47 || NETSTANDARD2_0
+#if NET45 || NET47
 
         [Fact]
         public void When_an_object_doesnt_expose_any_events_it_should_throw()
@@ -857,7 +797,15 @@ namespace FluentAssertions.Specs
             string typeName = baseType.Name + "_GeneratedForTest";
             TypeBuilder typeBuilder = moduleBuilder.DefineType(typeName, TypeAttributes.Public, baseType, new[] { interfaceType });
 
-            Func<string, MethodBuilder> emitAddRemoveEventHandler = methodName =>
+            MethodBuilder addHandler = emitAddRemoveEventHandler("add");
+            typeBuilder.DefineMethodOverride(addHandler, interfaceType.GetMethod("add_InterfaceEvent"));
+            MethodBuilder removeHandler = emitAddRemoveEventHandler("remove");
+            typeBuilder.DefineMethodOverride(removeHandler, interfaceType.GetMethod("remove_InterfaceEvent"));
+
+            Type generatedType = typeBuilder.CreateType();
+            return Activator.CreateInstance(generatedType);
+
+            MethodBuilder emitAddRemoveEventHandler(string methodName)
             {
                 MethodBuilder method =
                     typeBuilder.DefineMethod(string.Format("{0}.{1}_InterfaceEvent", interfaceType.FullName, methodName),
@@ -869,14 +817,7 @@ namespace FluentAssertions.Specs
                 ILGenerator gen = method.GetILGenerator();
                 gen.Emit(OpCodes.Ret);
                 return method;
-            };
-            MethodBuilder addHandler = emitAddRemoveEventHandler("add");
-            typeBuilder.DefineMethodOverride(addHandler, interfaceType.GetMethod("add_InterfaceEvent"));
-            MethodBuilder removeHandler = emitAddRemoveEventHandler("remove");
-            typeBuilder.DefineMethodOverride(removeHandler, interfaceType.GetMethod("remove_InterfaceEvent"));
-
-            Type generatedType = typeBuilder.CreateType();
-            return Activator.CreateInstance(generatedType);
+            }
         }
 
 #endif
@@ -1015,3 +956,5 @@ namespace FluentAssertions.Specs
         }
     }
 }
+
+#endif

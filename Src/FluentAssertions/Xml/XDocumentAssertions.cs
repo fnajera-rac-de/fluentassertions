@@ -79,7 +79,7 @@ namespace FluentAssertions.Xml
         public AndConstraint<XDocumentAssertions> NotBe(XDocument unexpected, string because, params object[] becauseArgs)
         {
             Execute.Assertion
-                .ForCondition(!ReferenceEquals(Subject, null))
+                .ForCondition(!(Subject is null))
                 .BecauseOf(because, becauseArgs)
                 .FailWith("Did not expect XML document to be {0}, but found <null>.", unexpected);
 
@@ -115,7 +115,8 @@ namespace FluentAssertions.Xml
         /// </param>
         public AndConstraint<XDocumentAssertions> BeEquivalentTo(XDocument expected, string because, params object[] becauseArgs)
         {
-            new XmlReaderValidator(Subject.CreateReader(), expected.CreateReader(), because, becauseArgs).Validate(true);
+            var xmlReaderValidator = new XmlReaderValidator(Subject.CreateReader(), expected.CreateReader(), because, becauseArgs);
+            xmlReaderValidator.Validate(true);
 
             return new AndConstraint<XDocumentAssertions>(this);
         }
@@ -144,7 +145,8 @@ namespace FluentAssertions.Xml
         /// </param>
         public AndConstraint<XDocumentAssertions> NotBeEquivalentTo(XDocument unexpected, string because, params object[] becauseArgs)
         {
-            new XmlReaderValidator(Subject.CreateReader(), unexpected.CreateReader(), because, becauseArgs).Validate(false);
+            var xmlReaderValidator = new XmlReaderValidator(Subject.CreateReader(), unexpected.CreateReader(), because, becauseArgs);
+            xmlReaderValidator.Validate(false);
 
             return new AndConstraint<XDocumentAssertions>(this);
         }

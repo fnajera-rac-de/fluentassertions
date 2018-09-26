@@ -1,4 +1,4 @@
-﻿#if NET45 || NET47 || NETSTANDARD2_0
+﻿#if NET45 || NET47 || NETSTANDARD2_0 || NETCOREAPP2_0
 
 using System.Xml;
 using FluentAssertions.Common;
@@ -18,7 +18,7 @@ namespace FluentAssertions.Xml
         {
             string outerXml = ((XmlNode)value).OuterXml;
 
-            int maxLength = 20;
+            const int maxLength = 20;
 
             if (outerXml.Length > maxLength)
             {

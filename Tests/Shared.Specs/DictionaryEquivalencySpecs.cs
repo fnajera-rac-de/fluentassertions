@@ -10,7 +10,6 @@ using Xunit.Sdk;
 
 namespace FluentAssertions.Specs
 {
-    [Collection("Equivalency")]
     public class DictionaryEquivalencySpecs
     {
         private class NonGenericDictionary : IDictionary
@@ -268,7 +267,7 @@ namespace FluentAssertions.Specs
 
             public bool Equals(SomeBaseKeyClass other)
             {
-                if (object.ReferenceEquals(other, null))
+                if (other is null)
                 {
                     return false;
                 }
@@ -929,7 +928,6 @@ namespace FluentAssertions.Specs
             {
                 [new SomeDerivedKeyClass(1)] = "hello",
                 [new SomeDerivedKeyClass(2)] = "hello"
-
             };
 
             //-----------------------------------------------------------------------------------------------------------
@@ -991,7 +989,6 @@ namespace FluentAssertions.Specs
             {
                 [new SomeDerivedKeyClass(1)] = "hello",
                 [new SomeDerivedKeyClass(2)] = "hello"
-
             };
 
             //-----------------------------------------------------------------------------------------------------------
@@ -1220,6 +1217,37 @@ namespace FluentAssertions.Specs
             //-----------------------------------------------------------------------------------------------------------
             act.Should().Throw<XunitException>()
                 .WithMessage("Expected*String*JValue*");
+        }
+
+        [Fact]
+        public void When_a_custom_rule_is_applied_on_a_dictionary_it_should_apply_it_on_the_values()
+        {
+            //-----------------------------------------------------------------------------------------------------------
+            // Arrange
+            //-----------------------------------------------------------------------------------------------------------
+            var dictOne = new Dictionary<string, double>
+            {
+                { "a", 1.2345 },
+                { "b", 2.4567 },
+                { "c", 5.6789 },
+                { "s", 3.333 }
+            };
+
+            var dictTwo = new Dictionary<string, double>
+            {
+                { "a", 1.2348 },
+                { "b", 2.4561 },
+                { "c", 5.679 },
+                { "s", 3.333 }
+            };
+
+            //-----------------------------------------------------------------------------------------------------------
+            // Act / Assert
+            //-----------------------------------------------------------------------------------------------------------
+            dictOne.Should().BeEquivalentTo(dictTwo, options => options
+                .Using<double>(ctx => ctx.Subject.Should().BeApproximately(ctx.Expectation, 0.1))
+                .WhenTypeIs<double>()
+            );
         }
     }
 }

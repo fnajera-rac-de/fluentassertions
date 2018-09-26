@@ -28,11 +28,13 @@ namespace FluentAssertions.Equivalency
 
                 do
                 {
-                    var subject = ((Array)context.Subject).GetValue(digit.Indices);
+                    object subject = ((Array)context.Subject).GetValue(digit.Indices);
+                    string listOfIndices = string.Join(",", digit.Indices);
+                    object expectation = expectationAsArray.GetValue(digit.Indices);
                     IEquivalencyValidationContext itemContext = context.CreateForCollectionItem(
-                        string.Join(",", digit.Indices),
+                        listOfIndices,
                         subject,
-                        expectationAsArray.GetValue(digit.Indices));
+                        expectation);
 
                     parent.AssertEqualityUsing(itemContext);
                 }
@@ -61,7 +63,7 @@ namespace FluentAssertions.Equivalency
         private static bool IsArray(object type)
         {
             return AssertionScope.Current
-                .ForCondition(!ReferenceEquals(type, null))
+                .ForCondition(!(type is null))
                 .FailWith("Cannot compare a multi-dimensional array to {0}.", new object[] { null })
                 .Then
                 .ForCondition(type is Array)

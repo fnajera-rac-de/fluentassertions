@@ -82,7 +82,7 @@ namespace FluentAssertions.Xml
         public AndConstraint<XElementAssertions> NotBe(XElement unexpected, string because, params object[] becauseArgs)
         {
             Execute.Assertion
-                .ForCondition((ReferenceEquals(Subject, null) && !ReferenceEquals(unexpected, null)) || !XNode.DeepEquals(Subject, unexpected))
+                .ForCondition((Subject is null && !(unexpected is null)) || !XNode.DeepEquals(Subject, unexpected))
                 .BecauseOf(because, becauseArgs)
                 .FailWith("Expected XML element not to be {0}{reason}.", unexpected);
 
@@ -118,7 +118,8 @@ namespace FluentAssertions.Xml
             using (XmlReader subjectReader = Subject.CreateReader())
             using (XmlReader expectedReader = expected.CreateReader())
             {
-                new XmlReaderValidator(subjectReader, expectedReader, because, becauseArgs).Validate(true);
+                var xmlReaderValidator = new XmlReaderValidator(subjectReader, expectedReader, because, becauseArgs);
+                xmlReaderValidator.Validate(true);
             }
 
             return new AndConstraint<XElementAssertions>(this);
@@ -150,7 +151,8 @@ namespace FluentAssertions.Xml
         /// </param>
         public AndConstraint<XElementAssertions> NotBeEquivalentTo(XElement unexpected, string because, params object[] becauseArgs)
         {
-            new XmlReaderValidator(Subject.CreateReader(), unexpected.CreateReader(), because, becauseArgs).Validate(false);
+            var xmlReaderValidator = new XmlReaderValidator(Subject.CreateReader(), unexpected.CreateReader(), because, becauseArgs);
+            xmlReaderValidator.Validate(false);
 
             return new AndConstraint<XElementAssertions>(this);
         }

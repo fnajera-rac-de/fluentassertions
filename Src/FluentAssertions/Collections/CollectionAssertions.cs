@@ -177,7 +177,7 @@ namespace FluentAssertions.Collections
             int[] indices = Subject
                 .Cast<object>()
                 .Select((item, index) => new { Item = item, Index = index })
-                .Where(e => ReferenceEquals(e.Item, null))
+                .Where(e => e.Item is null)
                 .Select(e => e.Index)
                 .ToArray();
 
@@ -233,7 +233,7 @@ namespace FluentAssertions.Collections
             string because = "", params object[] becauseArgs)
         {
             bool subjectIsNull = ReferenceEquals(Subject, null);
-            bool expectationIsNull = ReferenceEquals(expectation, null);
+            bool expectationIsNull = expectation is null;
             if (subjectIsNull && expectationIsNull)
             {
                 return;
@@ -389,7 +389,8 @@ namespace FluentAssertions.Collections
                 Tracer = options.TraceWriter
             };
 
-            new EquivalencyValidator(options).AssertEquality(context);
+            var equivalencyValidator = new EquivalencyValidator(options);
+            equivalencyValidator.AssertEquality(context);
 
             return new AndConstraint<TAssertions>((TAssertions)this);
         }
